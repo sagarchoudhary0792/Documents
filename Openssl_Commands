@@ -1,0 +1,41 @@
+//Generate a Private key : 
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+
+//Generate a Public key from private key : 
+openssl ec -in key.pem -pubout -out public.pem
+
+//Request CSR : 
+openssl req -key Device_key.pem -new -out Device.csr
+
+//View CSR :  
+openssl req -text -noout -in Device.csr
+
+//Sign the Device certificate using CA : 
+openssl x509 -req -days 365 -in Device.csr -CA rootCA.crt -CAkey rootCA.key -out Device_cert.pem -sha256
+
+//View device certificate : 
+openssl x509 -noout -text -in cerfile.cer
+
+//Generate Self signed Root CA
+openssl ecparam -out rootCA.key -name prime256v1 -genkey
+openssl req -new -sha256 -key rootCA.key -out rootCA.csr
+openssl x509 -req -sha256 -days 365 -in rootCA.csr -signkey rootCA.key -out rootCA.crt
+
+//Convert the Certificate 
+openssl x509 -in cert.crt -out cert.pem 
+
+//Verify Certificate if signed by CA
+openssl verify -CAfile rootCA.crt Device_cert.pem
+
+//View modulus of the certificate
+openssl x509 -noout -modulus -in Device_cert.pem | openssl md5
+openssl rsa -noout -modulus -in Device_key.pem | openssl md5
+
+
+//Thumbprint SH256
+
+openssl x509 -in <certificate filename>.pem -text –fingerprint 
+
+openssl x509 -noout -fingerprint -sha256 -inform pem -in Device_cert.pem 
+
+openssl x509 -noout -fingerprint -in Device_cert.pem
