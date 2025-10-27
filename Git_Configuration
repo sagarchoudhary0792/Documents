@@ -1,0 +1,46 @@
+
+// For Windows/MAC machine
+//Generate the keys first on the device
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+//Check if your git is configured
+git config --list
+
+git config --global user.name “myusername”
+git config --global user.email username@usermail.com
+
+$ ssh-add <path/to/key>
+$ ssh-add /c/Users/location/.ssh/id_rsa
+
+eval $(ssh-agent)       // For Windows
+
+eval "$(ssh-agent -s)" // For MAC
+
+Use git 2.28 if others dont work
+
+
+git remote add origin git@github.com:$USER/your-repository.git
+
+git remote set-url origin git@github.com:username/your-repository.git
+
+//================================================================
+Git on Linux 
+
+ssh-keygen -t ed25519
+
+sudo apt-get install git
+
+sudo apt install libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev build-essential
+
+git config --global user.name "****"
+git config --global user.email "****"
+git config --list
+git config --global --list
+
+
+ssh -vvv -p 29418 git@github.com
+
+git remote add origin git@github.com:$USER/your-repository.git
+git remote set-url origin git@github.com:username/your-repository.git
+
+git push -u origin main
