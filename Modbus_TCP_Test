@@ -1,0 +1,142 @@
+Modbus Protocol Description
+MODBUS© Protocol is a messaging structure, widely used to establish master-slave communication between intelligent devices. A MODBUS message sent from a master to a slave contains the address of the slave, the 'command' (e.g. 'read register' or 'write register'), the data, and a check sum (LRC or CRC).
+Since Modbus protocol is just a messaging structure, it is independent of the underlying physical layer. It is traditionally implemented using RS232, RS422, or RS485
+
+The Request
+The function code in the request tells the addressed slave device what kind of action to perform. The data bytes contains any additional information that the slave will need to perform the function. For example, function code 03 will request the slave to read holding registers and respond with their contents. The data field must contain the information telling the slave which register to start at and how many registers to read. The error check field provides a method for the slave to validate the integrity of the message contents.
+
+The Response
+If the slave makes a normal response, the function code in the response is an echo of the function code in the request. The data bytes contain the data collected by the slave, such as register values or status. If an error occurs, the function code is modified to indicate that the response is an error response, and the data bytes contain a code that describes the error. The error check field allows the master to confirm that the message contents are valid.
+
+Controllers can be setup to communicate on standard Modbus networks using either of two transmission modes: ASCII or RTU.
+
+ASCII Mode
+When controllers are setup to communicate on a Modbus network using ASCII (American Standard Code for Information Interchange) mode, each eight-bit byte in a message is sent as two ASCII characters. The main advantage of this mode is that it allows time intervals of up to one second to occur between characters without causing an error.
+
+Coding System
+Hexadecimal ASCII printable characters 0 ... 9, A ... F
+Bits per Byte
+1 start bit
+7 data bits, least significant bit sent first
+1 bit for even / odd parity-no bit for no parity
+1 stop bit if parity is used-2 bits if no parity
+Error Checking
+Longitudinal Redundancy Check (LRC)
+
+RTU Mode
+When controllers are setup to communicate on a Modbus network using RTU (Remote Terminal Unit) mode, each eight-bit byte in a message contains two four-bit hexadecimal characters. The main advantage of this mode is that its greater character density allows better data throughput than ASCII for the same baud rate. Each message must be transmitted in a continuous stream.
+
+Coding System
+Eight-bit binary, hexadecimal 0 ... 9, A ... F
+Two hexadecimal characters contained in each eight-bit field of the message
+Bits per Byte
+1 start bit
+8 data bits, least significant bit sent first
+1 bit for even / odd parity-no bit for no parity
+1 stop bit if parity is used-2 bits if no parity
+Error Check Field
+Cyclical Redundancy Check (CRC)
+
+In ASCII mode, messages start with a colon ( : ) character (ASCII 3A hex), and end with a carriage return-line feed (CRLF) pair (ASCII 0D and 0A hex).
+The allowable characters transmitted for all other fields are hexadecimal 0 ... 9, A ... F. Networked devices monitor the network bus continuously for the colon character. When one is received, each device decodes the next field (the address field) to find out if it is the addressed device.
+Intervals of up to one second can elapse between characters within the message. If a greater interval occurs, the receiving device assumes an error has occurred. A typical message frame is shown below.
+
+Start	Address	Function	Data	LRC	End
+:	2 Chars	2 Chars	N Chars	2 Chars	CR LF
+
+RTU Framing
+In RTU mode, messages start with a silent interval of at least 3.5 character times. This is most easily implemented as a multiple of character times at the baud rate that is being used on the network (shown as T1-T2-T3-T4 in the figure below). The first field then transmitted is the device address.
+The allowable characters transmitted for all fields are hexadecimal 0 ... 9, A ... F. Networked devices monitor the network bus continuously, including during the silent intervals. When the first field (the address field) is received, each device decodes it to find out if it is the addressed device.
+Following the last transmitted character, a similar interval of at least 3.5 character times marks the end of the message. A new message can begin after this interval.
+The entire message frame must be transmitted as a continuous stream. If a silent interval of more than 1.5 character times occurs before completion of the frame, the receiving device flushes the incomplete message and assumes that the next byte will be the address field of a new message.
+Similarly, if a new message begins earlier than 3.5 character times following a previous message, the receiving device will consider it a continuation of the previous message. This will set an error, as the value in the final CRC field will not be valid for the combined messages. A typical message frame is shown below.
+
+Start	Address	Function	Data	CRC	End
+3.5 Char time	8 Bit	8 Bit	N * 8Bit	16 Bit	3.5 Char time
+Address Field
+The address field of a message frame contains two characters (ASCII) or eight bits (RTU). The individual slave devices are assigned addresses in the range of 1 ... 247.
+
+Function Field
+
+The Function Code field tells the addressed slave what function to perform.
+The following functions are supported by Modbus Poll.
+
+01 (0x01) Read Coils
+02 (0x02) Read Discrete Inputs
+03 (0x03) Read Holding Registers
+04 (0x04) Read Input Registers
+05 (0x05) Write Single Coil
+06 (0x06) Write Single Register
+08 (0x08) Diagnostics (Serial Line only)
+11 (0x0B) Get Comm Event Counter (Serial Line only)
+15 (0x0F) Write Multiple Coils
+16 (0x10) Write Multiple Registers
+17 (0x11) Report Server ID (Serial Line only)
+22 (0x16) Mask Write Register
+23 (0x17) Read/Write Multiple Registers
+43 / 14 (0x2B / 0x0E) Read Device Identification
+
+
+
+
+
+https://www.modbusdriver.com/modpoll.html
+
+wget https://www.modbusdriver.com/downloads/modpoll.tgz
+
+tar xzf modpoll.tgz
+cd modpoll/linux_x86_64
+chmod +x modpoll
+./modpoll -h  # Show help
+
+
+
+./modpoll -m tcp -t 4 -r 0 -c 10 192.168.1.100
+
+
+./modpoll -m tcp -t 3 -r 100 -w 1234 192.168.1.3
+
+
+======================================================================
+
+wget https://www.modbusdriver.com/downloads/diagslave-3.5.tgz
+
+wget https://www.modbusdriver.com/downloads/diagslave.tgz
+
+tar xzf diagslave-3.5.tgz
+cd diagslave/linux_x86_64  # or your architecture folder
+chmod +x diagslave
+
+./diagslave -h
+
+sudo ./diagslave -m tcp -a 1 -p 502
+
+
+./modpoll -m tcp -t 3 -r 1 -c 1 -p 502 192.168.1.3
+
+./modpoll -m tcp -t 4:int -r 1 -1 192.168.1.3 1234
+
+
+-m tcp: Use Modbus TCP protocol
+-t 3: Function code 3 (Read Holding Registers)
+-r 1: Start address (register 1)
+-c 1: Number of registers to read
+-p 502: TCP port (default for Modbus)
+192.168.1.3: IP address of the Modbus slave
+
+
+sudo lsof -i :502
+
+
+/diagslave/aarch64-linux-gnu
+sudo ./diagslave -m tcp -a 1 -p 502
+
+
+/modpoll/x86_64-linux-gnu
+./modpoll -m tcp -t 4:int -r 1 -1 192.168.1.3 1234
+
+./modpoll -m tcp -t 3 -r 1 -c 1 -p 502 192.168.1.3
+
+
+./modpoll -m tcp -a 1 -r 1 -c 1 -t 0 192.168.1.3 1
+
