@@ -1,0 +1,23 @@
+
+//Install the required compiler 
+
+sudo apt install gcc-9 gcc-9-aarch64-linux-gnu
+sudo apt install g++-9 g++-9-aarch64-linux-gnu
+
+sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+
+//Check if it is successfully Installed
+/usr/bin grep the aarch64-linux-gnu
+
+//Now Compile the C/C++ Project/files 
+./aarch64-linux-gnu-gcc-9 file_names 
+./aarch64-linux-gnu-g++-9
+ 
+//For Cmake project add the following lines in Cmakelists.txt
+set(CMAKE_C_COMPILER "/usr/bin/aarch64-linux-gnu-gcc-9")
+set(CMAKE_CXX_COMPILER "/usr/bin/aarch64-linux-gnu-g++-9")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE arm64)
+
+//To check the compiler used to compile the file
+ldd file_name
